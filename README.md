@@ -60,9 +60,12 @@ handledDropTime = 0;
 
 | File         | Source                  | License |
 |--------------|--------------------------|--------|
-| chime-95842.mp3   | pixabay.com    | CC0    |
-| cinematic-thud-fx-379991.mp3     | pixabay.com     | CC0    |
+| ui-mouse-click-366460.mp3   | pixabay.com    | CC0    |
+| cinematic-thud-fx-379991.mp3     | pixabay.com     | CC0  |
 | rocks-6129.mp3  | pixabay.com    | CC0    |
+
+
+https://pixabay.com/service/license-summary/
 
 
 
