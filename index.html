@@ -58,6 +58,12 @@
 </div>
 <div id="progress"></div>
 
+
+<audio id="sound-success" src="sounds/chime.mp3"></audio>
+<audio id="sound-fail"    src="sounds/thud.mp3"></audio>
+<audio id="sound-clear"   src="sounds/crumble.mp3"></audio>
+
+  
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -120,26 +126,28 @@ function dropPiece() {
   const slotName = slots[slotIndex].dataset.name;
   const expectedName = symbolToName[currentPiece.symbol];
 
-  if (slotName === expectedName) {
-    // correct
-    slots[slotIndex].classList.add("activated");
-    // ---- Combo check (are all 5 activated?) ----
-const allActivated = slots.every(s => s.classList.contains("activated"));
-if (allActivated) {
-  // Remove one row of stone blocks
-  for (let i = 0; i < columnHeights.length; i++) {
-    columnHeights[i] = Math.max(0, columnHeights[i] - 1);
-  }
-  // Reset activations
-  slots.forEach(s => s.classList.remove("activated"));
-}
+if (slotName === expected) {
+   // correct
+  slots[slotIndex].classList.add("activated");
+  document.getElementById("sound-success").play();
 
-    
-  } else {
-    // incorrect
-    columnHeights[slotIndex]++;
-    slots[slotIndex].classList.remove("activated");
+  // ---- Combo check (are all 5 activated?) ----
+  const allActivated = slots.every(s => s.classList.contains("activated"));
+  if (allActivated) {
+     // Remove one row of stone blocks
+    for (let i = 0; i < columnHeights.length; i++) {
+      columnHeights[i] = Math.max(0, columnHeights[i] - 1);
+    }
+     // Reset activations
+    slots.forEach(s => s.classList.remove("activated"));
+    document.getElementById("sound-clear").play();
   }
+
+} else {
+  columnHeights[slotIndex]++;
+  slots[slotIndex].classList.remove("activated");
+  document.getElementById("sound-fail").play();
+}
 
   handledPieces++;
   updateProgress();
