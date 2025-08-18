@@ -123,6 +123,18 @@ function dropPiece() {
   if (slotName === expectedName) {
     // correct
     slots[slotIndex].classList.add("activated");
+    // ---- Combo check (are all 5 activated?) ----
+const allActivated = slots.every(s => s.classList.contains("activated"));
+if (allActivated) {
+  // Remove one row of stone blocks
+  for (let i = 0; i < columnHeights.length; i++) {
+    columnHeights[i] = Math.max(0, columnHeights[i] - 1);
+  }
+  // Reset activations
+  slots.forEach(s => s.classList.remove("activated"));
+}
+
+    
   } else {
     // incorrect
     columnHeights[slotIndex]++;
