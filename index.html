@@ -180,7 +180,7 @@ function gameLoop(timestamp) {
     ctx.font = "32px sans-serif";
     ctx.textAlign = "center";
     ctx.fillStyle = "#000";
-    ctx.fillText(currentPiece.symbol, currentPiece.x + (canvas.width/10), currentPiece.y);
+    ctx.fillText(currentPiece.symbol, currentPiece.x, currentPiece.y);
 
     // if reached bottom
     if (currentPiece.y >= canvas.height - blockHeight) {
