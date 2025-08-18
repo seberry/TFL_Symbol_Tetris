@@ -69,13 +69,23 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const slots = Array.from(document.querySelectorAll(".slot"));
-const symbols = ["∧", "∨", "¬", "→", "↔"];
+const symbols = [
+  "∧","&",
+  "∨",
+  "¬",
+  "→","⊃",
+  "↔","≡"
+];
+
 const symbolToName = {
   "∧": "AND",
+  "&": "AND",
   "∨": "OR",
   "¬": "NOT",
   "→": "IF…THEN",
-  "↔": "IFF"
+  "⊃": "IF…THEN",
+  "↔": "IFF",
+  "≡": "IFF"
 };
 
 const totalPieces = 30;
