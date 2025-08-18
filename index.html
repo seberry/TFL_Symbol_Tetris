@@ -175,18 +175,21 @@ function gameLoop(timestamp) {
   }
 
   // draw current piece
-  if (currentPiece) {
-    currentPiece.y += (2 / (baseFallSpeed * speedMultiplier)); // fall increment (fine tuned)
-    ctx.font = "32px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#000";
-    ctx.fillText(currentPiece.symbol, currentPiece.x, currentPiece.y);
+if (currentPiece) {
+  currentPiece.y += (2 / (baseFallSpeed * speedMultiplier)); // fall increment (fine tuned)
+  ctx.font = "32px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#000";
 
-    // if reached bottom
-    if (currentPiece.y >= canvas.height - blockHeight) {
-      dropPiece();
-    }
+  const slotWidth = canvas.width / 5;
+  const xCenter = (Math.floor(currentPiece.x / slotWidth) * slotWidth) + slotWidth/2;
+  ctx.fillText(currentPiece.symbol, xCenter, currentPiece.y);
+
+  // if reached bottom
+  if (currentPiece.y >= canvas.height - blockHeight) {
+    dropPiece();
   }
+}
 
   requestAnimationFrame(gameLoop);
 }
