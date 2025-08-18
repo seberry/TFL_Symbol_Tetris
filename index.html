@@ -126,7 +126,7 @@ function dropPiece() {
   const slotName = slots[slotIndex].dataset.name;
   const expectedName = symbolToName[currentPiece.symbol];
 
-if (slotName === expected) {
+if (slotName === expectedName) {
    // correct
   slots[slotIndex].classList.add("activated");
   document.getElementById("sound-success").play();
