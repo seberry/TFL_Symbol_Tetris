@@ -60,6 +60,11 @@ handledDropTime = 0;
 
 | File         | Source                  | License |
 |--------------|--------------------------|--------|
-| chime.mp3    | pixabay.com (sfx12345)    | CC0    |
-| thud.mp3     | pixabay.com (sfx45678)    | CC0    |
-| crumble.mp3  | pixabay.com (sfx90245)    | CC0    |
+| chime-95842.mp3   | pixabay.com    | CC0    |
+| cinematic-thud-fx-379991.mp3     | pixabay.com     | CC0    |
+| rocks-6129.mp3  | pixabay.com    | CC0    |
+
+
+
+
+
