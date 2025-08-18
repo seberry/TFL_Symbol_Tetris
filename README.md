@@ -54,3 +54,12 @@ for (let i = 0; i < totalPieces; i++) {
   totalDropTime += dropTime;
 }
 handledDropTime = 0;
+
+
+# Sound Assets
+
+| File         | Source                  | License |
+|--------------|--------------------------|--------|
+| chime.mp3    | pixabay.com (sfx12345)    | CC0    |
+| thud.mp3     | pixabay.com (sfx45678)    | CC0    |
+| crumble.mp3  | pixabay.com (sfx90245)    | CC0    |
