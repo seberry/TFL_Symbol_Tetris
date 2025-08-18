@@ -1,3 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Logic Tetris MVP – Level 1</title>
+<style>
+  body {
+    margin: 0;
+    font-family: sans-serif;
+    background: #a0cfff; /* sky blue */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #gameCanvas {
+    border: 1px solid #333;
+    background: transparent;
+  }
+
+  #slotContainer {
+    display: flex;
+    width: 800px;
+  }
+
+  .slot {
+    flex: 1;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    background: #ececec;
+    transition: background 0.2s;
+  }
+
+  .activated {
+    background: #88ffaa;
+  }
+
+  #progress {
+    margin: 8px;
+  }
+
+</style>
+</head>
+<body>
+
+  <div style="background:#ffeeba; padding:8px; text-align:center; font-weight:bold;">
+    TFL Symbol Tetris — not yet playable (vibecoding in progress!)
+</div>
+  
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<div id="slotContainer">
+  <div class="slot" data-name="AND">AND</div>
+  <div class="slot" data-name="OR">OR</div>
+  <div class="slot" data-name="NOT">NOT</div>
+  <div class="slot" data-name="IF…THEN">IF…THEN</div>
+  <div class="slot" data-name="IFF">IFF</div>
+</div>
+<div id="progress"></div>
+
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -14,38 +74,31 @@ const symbolToName = {
 
 const totalPieces = 30;
 let handledPieces = 0;
+
+// Column state (stone block height per column, in units)
 let columnHeights = [0,0,0,0,0];
 const blockHeight = 50;
 const maxBlocks = 12;
+
+// Current falling piece
 let currentPiece = null;
 
-let baseFallSpeed = 1.5;
-let speedMultiplier = 1;
+// Fall speed settings
+let baseFallSpeed = 1.5; // seconds
+let speedMultiplier = 1; // slowly increases
 
-// ---- Placeholder audio (simple oscillator beeps) -----
-function playBeep(freq, duration=100) {
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.type = "square";
-  osc.frequency.value = freq;
-  osc.start();
-  gain.gain.setValueAtTime(0.3, ctx.currentTime);
-  osc.stop(ctx.currentTime + duration/1000);
-}
-// -----------------------------------------------------
-
+// Spawn initial piece
 spawnPiece();
+
 document.addEventListener("keydown", handleKey);
 
 function spawnPiece() {
   const symbol = symbols[Math.floor(Math.random() * symbols.length)];
   currentPiece = {
-    symbol,
+    symbol: symbol,
     x: 400,
-    y: 0
+    y: 0,
+    fallSpeed: baseFallSpeed * speedMultiplier // pixels per second will be computed
   };
 }
 
@@ -54,9 +107,9 @@ function handleKey(e) {
   const slotWidth = canvas.width / 5;
 
   if (e.key === "ArrowLeft") {
-    currentPiece.x = Math.max(0, currentPiece.x - slotWidth);
+    currentPiece.x -= slotWidth;
   } else if (e.key === "ArrowRight") {
-    currentPiece.x = Math.min(canvas.width - slotWidth, currentPiece.x + slotWidth);
+    currentPiece.x += slotWidth;
   } else if (e.key === " ") {
     dropPiece();
   }
@@ -68,25 +121,12 @@ function dropPiece() {
   const expectedName = symbolToName[currentPiece.symbol];
 
   if (slotName === expectedName) {
-    // ------ Correct drop ------
+    // correct
     slots[slotIndex].classList.add("activated");
-    playBeep(660);                     // success sound
-
-    // Check combo (are all 5 activated?)
-    if (slots.every(s => s.classList.contains("activated"))) {
-      // Clear one stone row and reset activations
-      for (let i = 0; i < columnHeights.length; i++) {
-        columnHeights[i] = Math.max(0, columnHeights[i] - 1);
-      }
-      slots.forEach(s => s.classList.remove("activated"));
-      playBeep(240);  // lower-tone "crumble" beep
-    }
-
   } else {
-    // ------ Incorrect drop ------
+    // incorrect
     columnHeights[slotIndex]++;
     slots[slotIndex].classList.remove("activated");
-    playBeep(300);   // error beep
   }
 
   handledPieces++;
@@ -107,7 +147,7 @@ function dropPiece() {
   }
 
   // slow ramp
-  speedMultiplier *= 1.02;
+  speedMultiplier *= 1.02;  // +2% each piece
   spawnPiece();
 }
 
@@ -116,7 +156,8 @@ function updateProgress() {
     handledPieces + " / " + totalPieces;
 }
 
-function gameLoop() {
+// Main loop
+function gameLoop(timestamp) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // draw stone blocks
@@ -134,24 +175,27 @@ function gameLoop() {
   }
 
   // draw current piece
-  if (currentPiece) {
-    const fallPx = (2 / (baseFallSpeed * speedMultiplier));
-    currentPiece.y += fallPx;
-    ctx.font = "32px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#000";
+if (currentPiece) {
+  currentPiece.y += (2 / (baseFallSpeed * speedMultiplier)); // fall increment (fine tuned)
+  ctx.font = "32px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#000";
 
-    const slotWidth = canvas.width / 5;
-    const xCenter = (Math.floor(currentPiece.x / slotWidth) * slotWidth) + slotWidth/2;
-    ctx.fillText(currentPiece.symbol, xCenter, currentPiece.y);
+  const slotWidth = canvas.width / 5;
+  const xCenter = (Math.floor(currentPiece.x / slotWidth) * slotWidth) + slotWidth/2;
+  ctx.fillText(currentPiece.symbol, xCenter, currentPiece.y);
 
-    if (currentPiece.y >= canvas.height - blockHeight) {
-      dropPiece();
-    }
+  // if reached bottom
+  if (currentPiece.y >= canvas.height - blockHeight) {
+    dropPiece();
   }
+}
 
   requestAnimationFrame(gameLoop);
 }
 
 requestAnimationFrame(gameLoop);
 </script>
+
+</body>
+</html>
