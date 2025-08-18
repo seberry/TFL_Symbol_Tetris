@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Logic Tetris MVP – Level 1</title>
+<style>
+  body {
+    margin: 0;
+    font-family: sans-serif;
+    background: #a0cfff; /* sky blue */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #gameCanvas {
+    border: 1px solid #333;
+    background: transparent;
+  }
+
+  #slotContainer {
+    display: flex;
+    width: 800px;
+  }
+
+  .slot {
+    flex: 1;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    background: #ececec;
+    transition: background 0.2s;
+  }
+
+  .activated {
+    background: #88ffaa;
+  }
+
+  #progress {
+    margin: 8px;
+  }
+
+</style>
+</head>
+<body>
+
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<div id="slotContainer">
+  <div class="slot" data-name="AND">AND</div>
+  <div class="slot" data-name="OR">OR</div>
+  <div class="slot" data-name="NOT">NOT</div>
+  <div class="slot" data-name="IF…THEN">IF…THEN</div>
+  <div class="slot" data-name="IFF">IFF</div>
+</div>
+<div id="progress"></div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const slots = Array.from(document.querySelectorAll(".slot"));
+const symbols = ["∧", "∨", "¬", "→", "↔"];
+const symbolToName = {
+  "∧": "AND",
+  "∨": "OR",
+  "¬": "NOT",
+  "→": "IF…THEN",
+  "↔": "IFF"
+};
+
+const totalPieces = 30;
+let handledPieces = 0;
+
+// Column state (stone block height per column, in units)
+let columnHeights = [0,0,0,0,0];
+const blockHeight = 50;
+const maxBlocks = 12;
+
+// Current falling piece
+let currentPiece = null;
+
+// Fall speed settings
+let baseFallSpeed = 1.5; // seconds
+let speedMultiplier = 1; // slowly increases
+
+// Spawn initial piece
+spawnPiece();
+
+document.addEventListener("keydown", handleKey);
+
+function spawnPiece() {
+  const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+  currentPiece = {
+    symbol: symbol,
+    x: 400,
+    y: 0,
+    fallSpeed: baseFallSpeed * speedMultiplier // pixels per second will be computed
+  };
+}
+
+function handleKey(e) {
+  if (!currentPiece) return;
+  const slotWidth = canvas.width / 5;
+
+  if (e.key === "ArrowLeft") {
+    currentPiece.x -= slotWidth;
+  } else if (e.key === "ArrowRight") {
+    currentPiece.x += slotWidth;
+  } else if (e.key === " ") {
+    dropPiece();
+  }
+}
+
+function dropPiece() {
+  const slotIndex = Math.floor(currentPiece.x / (canvas.width / 5));
+  const slotName = slots[slotIndex].dataset.name;
+  const expectedName = symbolToName[currentPiece.symbol];
+
+  if (slotName === expectedName) {
+    // correct
+    slots[slotIndex].classList.add("activated");
+  } else {
+    // incorrect
+    columnHeights[slotIndex]++;
+    slots[slotIndex].classList.remove("activated");
+  }
+
+  handledPieces++;
+  updateProgress();
+
+  // check lose condition
+  if (columnHeights.some(h => h >= maxBlocks)) {
+    alert("Game over!");
+    window.location.reload();
+    return;
+  }
+
+  // Level done?
+  if (handledPieces >= totalPieces) {
+    alert("Level complete!");
+    window.location.reload();
+    return;
+  }
+
+  // slow ramp
+  speedMultiplier *= 1.02;  // +2% each piece
+  spawnPiece();
+}
+
+function updateProgress() {
+  document.getElementById("progress").textContent =
+    handledPieces + " / " + totalPieces;
+}
+
+// Main loop
+function gameLoop(timestamp) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // draw stone blocks
+  for (let i = 0; i < 5; i++) {
+    const h = columnHeights[i];
+    if (h > 0) {
+      ctx.fillStyle = "#777";
+      ctx.fillRect(
+        i * (canvas.width/5),
+        canvas.height - h * blockHeight,
+        canvas.width/5,
+        h * blockHeight
+      );
+    }
+  }
+
+  // draw current piece
+  if (currentPiece) {
+    currentPiece.y += (2 / (baseFallSpeed * speedMultiplier)); // fall increment (fine tuned)
+    ctx.font = "32px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#000";
+    ctx.fillText(currentPiece.symbol, currentPiece.x + (canvas.width/10), currentPiece.y);
+
+    // if reached bottom
+    if (currentPiece.y >= canvas.height - blockHeight) {
+      dropPiece();
+    }
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+requestAnimationFrame(gameLoop);
+</script>
+
+</body>
+</html>
