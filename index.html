@@ -64,30 +64,16 @@
 <div id="gameArea" style="position:relative; width:800px;">
   <canvas id="gameCanvas" width="800" height="600"></canvas>
 
-  <!-- Level1 slots -->
+  <!-- Slot container used for both levels -->
   <div id="slotContainer" style="position:absolute; left:0; bottom:0; width:800px; display:none;">
-    <div class="slot" data-name="AND">AND</div>
-    <div class="slot" data-name="OR">OR</div>
-    <div class="slot" data-name="NOT">NOT</div>
-    <div class="slot" data-name="IF…THEN">IF…THEN</div>
-    <div class="slot" data-name="IFF">IFF</div>
+    <div class="slot" data-name="">Slot1</div>
+    <div class="slot" data-name="">Slot2</div>
+    <div class="slot" data-name="">Slot3</div>
+    <div class="slot" data-name="">Slot4</div>
+    <div class="slot" data-name="">Slot5</div>
   </div>
-
-  <!-- Level2 truth-table grid -->
-  <table id="truthGrid" style="position:absolute; left:180px; bottom:0; display:none;">
-    <thead>
-      <tr><th>A</th><th>B</th><th></th><th></th><th></th><th></th><th></th></tr>
-    </thead>
-    <tbody>
-      <tr><td>T</td><td>T</td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr><td>T</td><td>F</td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr><td>F</td><td>T</td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr><td>F</td><td>F</td><td></td><td></td><td></td><td></td><td></td></tr>
-    </tbody>
-  </table>
 </div>
-
-
+  
 
 <div id="progress"></div>
 
