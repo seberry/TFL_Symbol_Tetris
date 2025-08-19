@@ -16,7 +16,13 @@
     border: 1px solid #333;
     background: transparent;
   }
-  #slotContainer { display: none } /* hidden for Level2 since we render truth-table grid */
+  #slotContainer {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 800px;
+  display: none;   /* <-- JS will set this to "flex" at start */
+}
   .slot {
     flex: 1;
     height: 50px;
