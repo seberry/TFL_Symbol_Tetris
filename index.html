@@ -42,6 +42,15 @@
 .slot.level2 .output-true  { font-weight:bold; }
 .slot.level2 .output-false { font-weight:normal; }
 
+/* Force consistent vertical spacing for all children in level 2 slots */
+.slot.level2 * {
+  line-height: 1.4em;
+  vertical-align: baseline;
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+}
+
   .activated { background:#88ffaa; }
   #progress { margin:8px; }
 
