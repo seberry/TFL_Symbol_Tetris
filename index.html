@@ -25,7 +25,7 @@
 }
   .slot {
   flex: 1;
-  height: 50px;
+  height: 60px;
   line-height: 50px;
   text-align: center;
   background: #ececec;
@@ -33,7 +33,7 @@
 }
 
 .slot.level2 {
-  height: 140px;
+  height: 160px;
   line-height: 1.1em;            /* <-- fixed line height for all lines */
   font-family: monospace; 
   display:flex;
@@ -116,7 +116,7 @@ let baseFallSpeed = 1.5;
 
 let currentPiece   = null;
 let columnHeights  = [0,0,0,0,0];
-const blockHeight  = 50;
+const blockHeight  = 60;
 const maxBlocks    = 12;
 
 // Level 1 symbols / mapping
@@ -330,13 +330,15 @@ function gameLoop(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
   // draw stones
+// NEW - correct calculation  
+const slotHeight = level === 2 ? 160 : 60;
+const startY = canvas.height - slotHeight - (columnHeights[i] * blockHeight);
+
+  
   for(let i=0;i<5;i++){
     if(columnHeights[i]>0){
       ctx.fillStyle="#777";
-      ctx.fillRect(i*(canvas.width/5),
-                   canvas.height - columnHeights[i]*blockHeight,
-                   (canvas.width/5),
-                   columnHeights[i]*blockHeight);
+      ctx.fillRect(i*(canvas.width/5), startY, (canvas.width/5), columnHeights[i]*blockHeight);
     }
   }
 
