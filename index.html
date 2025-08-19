@@ -33,7 +33,7 @@
 }
 
 .slot.level2 {
-  height: 110px;
+  height: 140px;
   line-height: 1.1em;            /* <-- fixed line height for all lines */
   font-family: monospace; 
   display:flex;
@@ -166,8 +166,8 @@ function beginGame(){
 
   } else {
     totalPieces = 30;
-    canvas.height = 500;     // <-- shorter drop area
-    baseFallSpeed = 2.5;     // <-- slower fall speed for level 2
+    canvas.height = 450;     // <-- shorter drop area
+    baseFallSpeed = 3;     // <-- slower fall speed for level 2 (we divide by fallspeed when calculating delta x value below, so higher numbers mean slower) 
     slotContainer.style.display = "flex";
     [...slotContainer.children].forEach(el => el.classList.add("level2"));
     setupLevel2Slots();
