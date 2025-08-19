@@ -97,17 +97,19 @@
 
 <!-- JS will go here -->
 <script>
+<script>
+// ======== Canvas + DOM Setup ========
 const canvas = document.getElementById("gameCanvas");
 const ctx    = canvas.getContext("2d");
 
-const startOverlay = document.getElementById("startOverlay");
+const startOverlay  = document.getElementById("startOverlay");
 const slotContainer = document.getElementById("slotContainer");
-const truthGrid     = document.getElementById("truthGrid");
 const progressDiv   = document.getElementById("progress");
 
-let level = 0;                 // 0 = not started, 1 or 2
+// ======== Data ========
+let level = 0;                   // 0 = not started, 1 or 2
 let handledPieces = 0;
-let totalPieces   = 30;        // overwritten to 20 for level2
+let totalPieces   = 30;          // updated to 20 in level2
 let speedMultiplier = 1;
 const baseFallSpeed = 1.5;
 
@@ -116,7 +118,7 @@ let columnHeights  = [0,0,0,0,0];
 const blockHeight  = 50;
 const maxBlocks    = 12;
 
-// Level 1 data
+// Level 1 symbols / mapping
 const level1Symbols = ["∧","&","∨","¬","→","⊃","↔","≡"];
 const symbolToName = {
   "∧":"AND","&":"AND",
@@ -126,7 +128,7 @@ const symbolToName = {
   "↔":"IFF","≡":"IFF"
 };
 
-// Level 2 data (4 binary connectives)
+// Level 2 (binary only)
 const binarySymbols = ["∧","∨","→","↔"];
 const truthPatterns = {
   "AND": ["T","F","F","F"],
@@ -134,21 +136,17 @@ const truthPatterns = {
   "IMP": ["T","F","T","T"],
   "IFF": ["T","F","F","T"]
 };
-const patternNames = ["AND","OR","IMP","IFF"]; // we’ll shuffle this
+const patternNames = ["AND","OR","IMP","IFF"];
 
-// -- START SCREEN --
+// ======== Start Screen Key ========
 document.addEventListener("keydown", chooseLevel);
 
 function chooseLevel(e){
-  if(e.key === "1"){
-    level = 1;
-    beginGame();
-  } else if(e.key === "2"){
-    level = 2;
-    beginGame();
-  }
+  if(e.key === "1"){ level = 1; beginGame(); }
+  if(e.key === "2"){ level = 2; beginGame(); }
 }
 
+// ======== Game Start ========
 function beginGame(){
   startOverlay.style.display = "none";
   document.removeEventListener("keydown", chooseLevel);
@@ -160,70 +158,85 @@ function beginGame(){
   if(level === 1){
     totalPieces = 30;
     slotContainer.style.display = "flex";
-    truthGrid.style.display     = "none";
-  } else { // level 2
+    loadLevel1Slots();
+  } else {
     totalPieces = 20;
-    slotContainer.style.display = "none";
-    truthGrid.style.display     = "table";
-    setupTruthTableGrid();
+    slotContainer.style.display = "flex";
+    setupLevel2Slots();
   }
 
   spawnPiece();
   requestAnimationFrame(gameLoop);
 }
 
-// -- LEVEL 2 GRID SETUP (shuffle patterns) --
-let dropOffset = 180;  // px where drop columns begin (leaving space for A,B columns)
-let dropColumnWidth = (canvas.width - dropOffset) / 5;
-let level2ValidColumns = [];   // indices of the 4 safe columns (0-4)
-
-function setupTruthTableGrid(){
-  const shuffled = patternNames.sort(() => Math.random() - 0.5);
-  level2ValidColumns = shuffled.slice(0,4);  // the actual 4 used patterns
-  for(let col = 0; col < 5; col++){
-    const patternName = shuffled[col];
-    const pat = truthPatterns[patternName];
-    for(let row = 0; row < 4; row++){
-      const cell = truthGrid.rows[row+1].cells[col+2];
-      cell.textContent = pat[row];
-      cell.className   = (pat[row] === "T") ? "output-true" : "";
-    }
+// ======== Level 1 slot labels ========
+function loadLevel1Slots(){
+  slotContainer.children[0].innerHTML = "AND";
+  slotContainer.children[1].innerHTML = "OR";
+  slotContainer.children[2].innerHTML = "NOT";
+  slotContainer.children[3].innerHTML = "IF…THEN";
+  slotContainer.children[4].innerHTML = "IFF";
+  // clear activation states
+  for(let i=0;i<5;i++){
+    slotContainer.children[i].classList.remove("activated");
+    slotContainer.children[i].dataset.name = slotContainer.children[i].textContent;
   }
 }
 
-// -- SPAWN --
+// ======== Level 2 slots (AB + shuffled patterns) ========
+function setupLevel2Slots(){
+  // Input column in slot 0
+  slotContainer.children[0].innerHTML =
+    "A&nbsp;B<br>T&nbsp;&nbsp;T<br>T&nbsp;&nbsp;F<br>F&nbsp;&nbsp;T<br>F&nbsp;&nbsp;F";
+  slotContainer.children[0].dataset.name = "INPUT";
+
+  // shuffle the 4 patterns
+  const shuffled = patternNames.sort(() => Math.random() - 0.5);
+
+  // fill slots 1..4
+  for(let col=1; col<5; col++){
+    const patName = shuffled[col-1];   // use first 4 from shuffle
+    const pattern = truthPatterns[patName];
+    let html = "";
+    for(const v of pattern){
+      html += (v==="T" ? "<b>T</b>" : "F") + "<br>";
+    }
+    slotContainer.children[col].innerHTML = html;
+    slotContainer.children[col].dataset.name = patName;
+    slotContainer.children[col].classList.remove("activated");
+  }
+}
+
+// ======== Spawn ========
 function spawnPiece(){
   if(level === 1){
     const s = level1Symbols[Math.floor(Math.random()*level1Symbols.length)];
-    currentPiece = { symbol:s, x:400, y:0 };
+    currentPiece = {symbol:s,x:400,y:0};
   } else {
     const s = binarySymbols[Math.floor(Math.random()*binarySymbols.length)];
-    currentPiece = { symbol:s, x:(dropOffset + 2*dropColumnWidth), y:0 };
+    currentPiece = {symbol:s,x:320,y:0}; // approx column 2
   }
 }
 
-// -- KEY HANDLING --
-document.addEventListener("keydown", (e)=>{
-  if(!currentPiece) return;
-  if(level === 0)   return;
+// ======== Key Input (move/drop) ========
+document.addEventListener("keydown",(e)=>{
+  if(level === 0 || !currentPiece) return;
+  const colWidth = canvas.width/5;
 
-  if(e.key === "ArrowLeft"){
-    currentPiece.x -= dropColumnWidth;
-  } else if(e.key === "ArrowRight"){
-    currentPiece.x += dropColumnWidth;
-  } else if(e.key === " "){
-    dropPiece();
-  }
+  if(e.key==="ArrowLeft")  currentPiece.x -= colWidth;
+  if(e.key==="ArrowRight") currentPiece.x += colWidth;
+  if(e.key===" ")          dropPiece();
 });
 
-// -- DROP LOGIC --
+// ======== Drop Logic ========
 function dropPiece(){
-  if(level === 1){
-    // slot index from 0..4
-    const slotIndex  = Math.floor(currentPiece.x / (canvas.width/5));
-    const slotName   = slotContainer.children[slotIndex].dataset.name;
-    const expected   = symbolToName[currentPiece.symbol];
+  const colWidth = canvas.width/5;
+  const slotIndex = Math.floor(currentPiece.x / colWidth);
 
+  // Level 1
+  if(level === 1){
+    const slotName = slotContainer.children[slotIndex].dataset.name;
+    const expected = symbolToName[currentPiece.symbol];
     if(slotName === expected){
       slotContainer.children[slotIndex].classList.add("activated");
       checkComboLevel1();
@@ -231,22 +244,22 @@ function dropPiece(){
       columnHeights[slotIndex]++;
       slotContainer.children[slotIndex].classList.remove("activated");
     }
+  }
 
-  } else if(level === 2){
-    // calculate which column (0..4) based on dropOffset
-    let col = Math.floor((currentPiece.x - dropOffset) / dropColumnWidth);
-    // OUT OF BOUNDS means wrong
-    if(col < 0 || col > 4){
-      columnHeights[Math.max(0,Math.min(col,4))]++;
+  // Level 2
+  if(level === 2){
+    if(slotIndex === 0){
+      // AB column -> wrong
+      columnHeights[0]++;
     } else {
-      const pattern = level2ValidColumns[col]; // name like "AND"
-      const expectedName = pattern;
-      if(symbolToName[currentPiece.symbol] === expectedName){
-        // correct
-        truthGrid.rows[0].cells[col+2].classList.add("activated");
+      const slotName = slotContainer.children[slotIndex].dataset.name;
+      const expected = symbolToName[currentPiece.symbol];
+      if(slotName === expected){
+        slotContainer.children[slotIndex].classList.add("activated");
         checkComboLevel2();
       } else {
-        columnHeights[col]++;
+        columnHeights[slotIndex]++;
+        slotContainer.children[slotIndex].classList.remove("activated");
       }
     }
   }
@@ -257,34 +270,27 @@ function dropPiece(){
   spawnPiece();
 }
 
+// ======== Combo Checkers ========
 function checkComboLevel1(){
-  const allAct = Array.from(slotContainer.children)
-     .every(s=>s.classList.contains("activated"));
+  const allAct = [...slotContainer.children]
+    .every(el=>el.classList.contains("activated"));
   if(allAct){
     for(let i=0;i<5;i++) columnHeights[i]=Math.max(0,columnHeights[i]-1);
-    Array.from(slotContainer.children).forEach(s=>s.classList.remove("activated"));
+    [...slotContainer.children].forEach(el=>el.classList.remove("activated"));
   }
 }
-
 function checkComboLevel2(){
-  // require all 4 valid columns to be activated
-  const safeCols = level2ValidColumns;
-  const allAct = safeCols.every(name => {
-    const idx = level2ValidColumns.indexOf(name);
-    return truthGrid.rows[0].cells[idx+2].classList.contains("activated");
-  });
+  // must activate slots 1,2,3,4
+  const allAct = [1,2,3,4].every(i =>
+    slotContainer.children[i].classList.contains("activated")
+  );
   if(allAct){
     for(let i=0;i<5;i++) columnHeights[i]=Math.max(0,columnHeights[i]-1);
-    // reset activation markers
-    for(let r=0;r<1;r++){
-      for(let c=0;c<5;c++){
-        truthGrid.rows[0].cells[c+2].classList.remove("activated");
-      }
-    }
+    [1,2,3,4].forEach(i => slotContainer.children[i].classList.remove("activated"));
   }
 }
 
-// -- UPDATE / END CHECK --
+// ======== Progress + End ========
 function updateProgressAndCheckEnd(){
   progressDiv.textContent = handledPieces + " / " + totalPieces;
   if(columnHeights.some(h=>h>=maxBlocks)){
@@ -297,40 +303,40 @@ function updateProgressAndCheckEnd(){
   }
 }
 
-// -- GAME LOOP --
+// ======== Game Loop ========
 function gameLoop(){
-  if(level === 0){
-    requestAnimationFrame(gameLoop);
-    return;
-  }
+  if(level === 0){ requestAnimationFrame(gameLoop); return; }
   ctx.clearRect(0,0,canvas.width,canvas.height);
+
   // draw stones
   for(let i=0;i<5;i++){
     if(columnHeights[i]>0){
       ctx.fillStyle="#777";
-      ctx.fillRect(dropOffset + i*dropColumnWidth,
+      ctx.fillRect(i*(canvas.width/5),
                    canvas.height - columnHeights[i]*blockHeight,
-                   dropColumnWidth,
+                   (canvas.width/5),
                    columnHeights[i]*blockHeight);
     }
   }
+
   // draw current piece
   if(currentPiece){
     currentPiece.y += (2/(baseFallSpeed*speedMultiplier));
     ctx.font="32px sans-serif";
     ctx.textAlign="center";
     ctx.fillStyle="#000";
-    ctx.fillText(
-      currentPiece.symbol,
-      currentPiece.x + dropColumnWidth/2,
-      currentPiece.y
-    );
+    ctx.fillText(currentPiece.symbol,
+      (Math.floor(currentPiece.x/(canvas.width/5))*(canvas.width/5)) + (canvas.width/10),
+      currentPiece.y);
+
     if(currentPiece.y >= canvas.height - blockHeight){
       dropPiece();
     }
   }
   requestAnimationFrame(gameLoop);
 }
+</script>
+
 </script>
 
 
