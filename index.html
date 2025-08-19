@@ -2,21 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Logic Tetris MVP – Levels 1 & 2</title>
+<title>Logic Tetris MVP – Level 1</title>
 <style>
   body {
     margin: 0;
     font-family: sans-serif;
-    background: #a0cfff;
+    background: #a0cfff; /* sky blue */
     display: flex;
     flex-direction: column;
     align-items: center;
   }
+
   #gameCanvas {
     border: 1px solid #333;
     background: transparent;
   }
-  #slotContainer { display: none } /* hidden for Level2 since we render truth-table grid */
+
+  #slotContainer {
+    display: flex;
+    width: 800px;
+  }
+
   .slot {
     flex: 1;
     height: 50px;
@@ -25,310 +31,234 @@
     background: #ececec;
     transition: background 0.2s;
   }
-  .activated { background:#88ffaa; }
-  #progress { margin:8px; }
 
-  /* start overlay */
-  #startOverlay {
-    position:absolute;
-    top:0; left:0;
-    width:100%; height:100%;
-    background:rgba(0,0,0,0.4);
-    color:white;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    font-size:20px;
+  .activated {
+    background: #88ffaa;
   }
 
-  /* Truth-table grid (Level2) */
-  #truthGrid {
-    border-collapse: collapse;
-    font-size:14px;
-    margin-top:4px;
+  #progress {
+    margin: 8px;
   }
-  #truthGrid th, #truthGrid td {
-    padding:2px 6px;
-    text-align:center;
-  }
-  #truthGrid thead tr { border-bottom:1px solid black; }
-  #truthGrid th:nth-child(2), #truthGrid td:nth-child(2) {
-    border-right:1px solid black;
-  }
-  .output-true { font-weight:bold; }
+
 </style>
 </head>
 <body>
 
+  <div style="background:#ffeeba; padding:8px; text-align:center; font-weight:bold;">
+    TFL Symbol Tetris — not yet playable (vibecoding in progress!)
+</div>
+  
 <canvas id="gameCanvas" width="800" height="600"></canvas>
 <div id="slotContainer">
-  <!-- Level1 slot labels -->
   <div class="slot" data-name="AND">AND</div>
   <div class="slot" data-name="OR">OR</div>
   <div class="slot" data-name="NOT">NOT</div>
   <div class="slot" data-name="IF…THEN">IF…THEN</div>
   <div class="slot" data-name="IFF">IFF</div>
 </div>
-
-<!-- Level2 truth-table layout -->
-<table id="truthGrid" style="display:none;">
-  <thead>
-    <tr><th>A</th><th>B</th><th></th><th></th><th></th><th></th><th></th></tr>
-  </thead>
-  <tbody>
-    <tr><td>T</td><td>T</td><td></td><td></td><td></td><td></td><td></td></tr>
-    <tr><td>T</td><td>F</td><td></td><td></td><td></td><td></td><td></td></tr>
-    <tr><td>F</td><td>T</td><td></td><td></td><td></td><td></td><td></td></tr>
-    <tr><td>F</td><td>F</td><td></td><td></td><td></td><td></td><td></td></tr>
-  </tbody>
-</table>
-
 <div id="progress"></div>
-
-<div id="startOverlay">
- <h2> Press <b>1</b> to play Level 1<br/>Press <b>2</b> to play Level 2 </h2>
+<div id="startOverlay" style="
+  position:absolute;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.4);
+  color:white;
+  font-size:28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+">
+  Click or press any key to start
 </div>
 
-<!-- JS will go here -->
+
+<audio id="sound-success" src="sounds/click.mp3"></audio>
+<audio id="sound-fail"    src="sounds/thud.mp3"></audio>
+<audio id="sound-clear"   src="sounds/crumble.mp3"></audio>
+
+  
 <script>
-const canvas = document.getElementById("gameCanvas");
-const ctx    = canvas.getContext("2d");
-
+let gameStarted = false;
 const startOverlay = document.getElementById("startOverlay");
-const slotContainer = document.getElementById("slotContainer");
-const truthGrid     = document.getElementById("truthGrid");
-const progressDiv   = document.getElementById("progress");
 
-let level = 0;                 // 0 = not started, 1 or 2
-let handledPieces = 0;
-let totalPieces   = 30;        // overwritten to 20 for level2
-let speedMultiplier = 1;
-const baseFallSpeed = 1.5;
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-let currentPiece   = null;
-let columnHeights  = [0,0,0,0,0];
-const blockHeight  = 50;
-const maxBlocks    = 12;
+const slots = Array.from(document.querySelectorAll(".slot"));
+const symbols = [
+  "∧","&",
+  "∨",
+  "¬",
+  "→","⊃",
+  "↔","≡"
+];
 
-// Level 1 data
-const level1Symbols = ["∧","&","∨","¬","→","⊃","↔","≡"];
 const symbolToName = {
-  "∧":"AND","&":"AND",
-  "∨":"OR",
-  "¬":"NOT",
-  "→":"IF…THEN","⊃":"IF…THEN",
-  "↔":"IFF","≡":"IFF"
+  "∧": "AND",
+  "&": "AND",
+  "∨": "OR",
+  "¬": "NOT",
+  "→": "IF…THEN",
+  "⊃": "IF…THEN",
+  "↔": "IFF",
+  "≡": "IFF"
 };
 
-// Level 2 data (4 binary connectives)
-const binarySymbols = ["∧","∨","→","↔"];
-const truthPatterns = {
-  "AND": ["T","F","F","F"],
-  "OR" : ["T","T","T","F"],
-  "IMP": ["T","F","T","T"],
-  "IFF": ["T","F","F","T"]
-};
-const patternNames = ["AND","OR","IMP","IFF"]; // we’ll shuffle this
+const totalPieces = 30;
+let handledPieces = 0;
 
-// -- START SCREEN --
-document.addEventListener("keydown", chooseLevel);
+// Column state (stone block height per column, in units)
+let columnHeights = [0,0,0,0,0];
+const blockHeight = 50;
+const maxBlocks = 12;
 
-function chooseLevel(e){
-  if(e.key === "1"){
-    level = 1;
-    beginGame();
-  } else if(e.key === "2"){
-    level = 2;
-    beginGame();
+// Current falling piece
+let currentPiece = null;
+
+// Fall speed settings
+let baseFallSpeed = 1.5; // seconds
+let speedMultiplier = 1; // slowly increases
+
+// Pause game loop until user starts
+startOverlay.addEventListener('click', startGame);
+document.addEventListener('keydown', startGame);
+
+function startGame(){
+  if (!gameStarted) {
+    gameStarted = true;
+    startOverlay.style.display = "none";
+    spawnPiece();
   }
 }
 
-function beginGame(){
-  startOverlay.style.display = "none";
-  document.removeEventListener("keydown", chooseLevel);
+// Spawn initial piece
+spawnPiece();
 
-  handledPieces = 0;
-  speedMultiplier = 1;
-  columnHeights = [0,0,0,0,0];
+document.addEventListener("keydown", handleKey);
 
-  if(level === 1){
-    totalPieces = 30;
-    slotContainer.style.display = "flex";
-    truthGrid.style.display     = "none";
-  } else { // level 2
-    totalPieces = 20;
-    slotContainer.style.display = "none";
-    truthGrid.style.display     = "table";
-    setupTruthTableGrid();
-  }
-
-  spawnPiece();
-  requestAnimationFrame(gameLoop);
+function spawnPiece() {
+  const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+  currentPiece = {
+    symbol: symbol,
+    x: 400,
+    y: 0,
+    fallSpeed: baseFallSpeed * speedMultiplier // pixels per second will be computed
+  };
 }
 
-// -- LEVEL 2 GRID SETUP (shuffle patterns) --
-let dropOffset = 180;  // px where drop columns begin (leaving space for A,B columns)
-let dropColumnWidth = (canvas.width - dropOffset) / 5;
-let level2ValidColumns = [];   // indices of the 4 safe columns (0-4)
+function handleKey(e) {
+  if (!currentPiece) return;
+  const slotWidth = canvas.width / 5;
 
-function setupTruthTableGrid(){
-  const shuffled = patternNames.sort(() => Math.random() - 0.5);
-  level2ValidColumns = shuffled.slice(0,4);  // the actual 4 used patterns
-  for(let col = 0; col < 5; col++){
-    const patternName = shuffled[col];
-    const pat = truthPatterns[patternName];
-    for(let row = 0; row < 4; row++){
-      const cell = truthGrid.rows[row+1].cells[col+2];
-      cell.textContent = pat[row];
-      cell.className   = (pat[row] === "T") ? "output-true" : "";
-    }
-  }
-}
-
-// -- SPAWN --
-function spawnPiece(){
-  if(level === 1){
-    const s = level1Symbols[Math.floor(Math.random()*level1Symbols.length)];
-    currentPiece = { symbol:s, x:400, y:0 };
-  } else {
-    const s = binarySymbols[Math.floor(Math.random()*binarySymbols.length)];
-    currentPiece = { symbol:s, x:(dropOffset + 2*dropColumnWidth), y:0 };
-  }
-}
-
-// -- KEY HANDLING --
-document.addEventListener("keydown", (e)=>{
-  if(!currentPiece) return;
-  if(level === 0)   return;
-
-  if(e.key === "ArrowLeft"){
-    currentPiece.x -= dropColumnWidth;
-  } else if(e.key === "ArrowRight"){
-    currentPiece.x += dropColumnWidth;
-  } else if(e.key === " "){
+  if (e.key === "ArrowLeft") {
+    currentPiece.x -= slotWidth;
+  } else if (e.key === "ArrowRight") {
+    currentPiece.x += slotWidth;
+  } else if (e.key === " ") {
     dropPiece();
   }
-});
+}
 
-// -- DROP LOGIC --
-function dropPiece(){
-  if(level === 1){
-    // slot index from 0..4
-    const slotIndex  = Math.floor(currentPiece.x / (canvas.width/5));
-    const slotName   = slotContainer.children[slotIndex].dataset.name;
-    const expected   = symbolToName[currentPiece.symbol];
+function dropPiece() {
+  const slotIndex = Math.floor(currentPiece.x / (canvas.width / 5));
+  const slotName = slots[slotIndex].dataset.name;
+  const expectedName = symbolToName[currentPiece.symbol];
 
-    if(slotName === expected){
-      slotContainer.children[slotIndex].classList.add("activated");
-      checkComboLevel1();
-    } else {
-      columnHeights[slotIndex]++;
-      slotContainer.children[slotIndex].classList.remove("activated");
+if (slotName === expectedName) {
+   // correct
+  slots[slotIndex].classList.add("activated");
+  document.getElementById("sound-success").play();
+
+  // ---- Combo check (are all 5 activated?) ----
+  const allActivated = slots.every(s => s.classList.contains("activated"));
+  if (allActivated) {
+     // Remove one row of stone blocks
+    for (let i = 0; i < columnHeights.length; i++) {
+      columnHeights[i] = Math.max(0, columnHeights[i] - 1);
     }
-
-  } else if(level === 2){
-    // calculate which column (0..4) based on dropOffset
-    let col = Math.floor((currentPiece.x - dropOffset) / dropColumnWidth);
-    // OUT OF BOUNDS means wrong
-    if(col < 0 || col > 4){
-      columnHeights[Math.max(0,Math.min(col,4))]++;
-    } else {
-      const pattern = level2ValidColumns[col]; // name like "AND"
-      const expectedName = pattern;
-      if(symbolToName[currentPiece.symbol] === expectedName){
-        // correct
-        truthGrid.rows[0].cells[col+2].classList.add("activated");
-        checkComboLevel2();
-      } else {
-        columnHeights[col]++;
-      }
-    }
+     // Reset activations
+    slots.forEach(s => s.classList.remove("activated"));
+    document.getElementById("sound-clear").play();
   }
 
+} else {
+  columnHeights[slotIndex]++;
+  slots[slotIndex].classList.remove("activated");
+  document.getElementById("sound-fail").play();
+}
+
   handledPieces++;
-  updateProgressAndCheckEnd();
-  speedMultiplier *= 1.02;
+  updateProgress();
+
+  // check lose condition
+  if (columnHeights.some(h => h >= maxBlocks)) {
+    alert("Game over!");
+    window.location.reload();
+    return;
+  }
+
+  // Level done?
+  if (handledPieces >= totalPieces) {
+    alert("Level complete!");
+    window.location.reload();
+    return;
+  }
+
+  // slow ramp
+  speedMultiplier *= 1.02;  // +2% each piece
   spawnPiece();
 }
 
-function checkComboLevel1(){
-  const allAct = Array.from(slotContainer.children)
-     .every(s=>s.classList.contains("activated"));
-  if(allAct){
-    for(let i=0;i<5;i++) columnHeights[i]=Math.max(0,columnHeights[i]-1);
-    Array.from(slotContainer.children).forEach(s=>s.classList.remove("activated"));
-  }
+function updateProgress() {
+  document.getElementById("progress").textContent =
+    handledPieces + " / " + totalPieces;
 }
 
-function checkComboLevel2(){
-  // require all 4 valid columns to be activated
-  const safeCols = level2ValidColumns;
-  const allAct = safeCols.every(name => {
-    const idx = level2ValidColumns.indexOf(name);
-    return truthGrid.rows[0].cells[idx+2].classList.contains("activated");
-  });
-  if(allAct){
-    for(let i=0;i<5;i++) columnHeights[i]=Math.max(0,columnHeights[i]-1);
-    // reset activation markers
-    for(let r=0;r<1;r++){
-      for(let c=0;c<5;c++){
-        truthGrid.rows[0].cells[c+2].classList.remove("activated");
-      }
-    }
-  }
-}
-
-// -- UPDATE / END CHECK --
-function updateProgressAndCheckEnd(){
-  progressDiv.textContent = handledPieces + " / " + totalPieces;
-  if(columnHeights.some(h=>h>=maxBlocks)){
-    alert("Game Over");
-    window.location.reload();
-  }
-  if(handledPieces >= totalPieces){
-    alert("Level Complete!");
-    window.location.reload();
-  }
-}
-
-// -- GAME LOOP --
-function gameLoop(){
-  if(level === 0){
+// Main loop
+function gameLoop(timestamp) {
+    if (!gameStarted) {
     requestAnimationFrame(gameLoop);
     return;
   }
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  // draw stones
-  for(let i=0;i<5;i++){
-    if(columnHeights[i]>0){
-      ctx.fillStyle="#777";
-      ctx.fillRect(dropOffset + i*dropColumnWidth,
-                   canvas.height - columnHeights[i]*blockHeight,
-                   dropColumnWidth,
-                   columnHeights[i]*blockHeight);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // draw stone blocks
+  for (let i = 0; i < 5; i++) {
+    const h = columnHeights[i];
+    if (h > 0) {
+      ctx.fillStyle = "#777";
+      ctx.fillRect(
+        i * (canvas.width/5),
+        canvas.height - h * blockHeight,
+        canvas.width/5,
+        h * blockHeight
+      );
     }
   }
+
   // draw current piece
-  if(currentPiece){
-    currentPiece.y += (2/(baseFallSpeed*speedMultiplier));
-    ctx.font="32px sans-serif";
-    ctx.textAlign="center";
-    ctx.fillStyle="#000";
-    ctx.fillText(
-      currentPiece.symbol,
-      currentPiece.x + dropColumnWidth/2,
-      currentPiece.y
-    );
-    if(currentPiece.y >= canvas.height - blockHeight){
-      dropPiece();
-    }
+if (currentPiece) {
+  currentPiece.y += (2 / (baseFallSpeed * speedMultiplier)); // fall increment (fine tuned)
+  ctx.font = "32px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#000";
+
+  const slotWidth = canvas.width / 5;
+  const xCenter = (Math.floor(currentPiece.x / slotWidth) * slotWidth) + slotWidth/2;
+  ctx.fillText(currentPiece.symbol, xCenter, currentPiece.y);
+
+  // if reached bottom
+  if (currentPiece.y >= canvas.height - blockHeight) {
+    dropPiece();
   }
+}
+
   requestAnimationFrame(gameLoop);
 }
-</script>
 
+requestAnimationFrame(gameLoop);
+</script>
 
 </body>
 </html>
-1
