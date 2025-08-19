@@ -34,8 +34,12 @@
 
 .slot.level2 {
   height: 110px;
-  line-height: normal; /* allow multi-line */
+  line-height: normal;
   font-size: 14px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  align-items:center;
 }
   .activated { background:#88ffaa; }
   #progress { margin:8px; }
@@ -191,9 +195,9 @@ function loadLevel1Slots(){
 // ======== Level 2 slots (AB + shuffled patterns) ========
 function setupLevel2Slots(){
   // Input column in slot 0
-  slotContainer.children[0].innerHTML =
-    "A&nbsp;B<br>T&nbsp;&nbsp;T<br>T&nbsp;&nbsp;F<br>F&nbsp;&nbsp;T<br>F&nbsp;&nbsp;F";
-  slotContainer.children[0].dataset.name = "INPUT";
+  slotContainer.children[0].innerHTML = "";   // clear any old label
+slotContainer.children[0].innerHTML =
+  "A&nbsp;B<br>T&nbsp;&nbsp;T<br>T&nbsp;&nbsp;F<br>F&nbsp;&nbsp;T<br>F&nbsp;&nbsp;F";
 
   // shuffle the 4 patterns
   const shuffled = patternNames.sort(() => Math.random() - 0.5);
@@ -202,7 +206,8 @@ function setupLevel2Slots(){
   for(let col=1; col<5; col++){
     const patName = shuffled[col-1];   // use first 4 from shuffle
     const pattern = truthPatterns[patName];
-    let html = "&nbsp;<br>";   // top blank row for alignment
+    let html = "&nbsp;&nbsp;<br>";   // add one blank row so patterns align with A/B header
+// top blank row for alignment
     for(const v of pattern){
       html += (v==="T" ? "<b>T</b>" : "F") + "<br>";
     }
