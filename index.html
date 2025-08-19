@@ -5,115 +5,178 @@
 <title>Logic Tetris MVP – Levels 1 & 2</title>
 <style>
   body {
-  background:#2a5da7;
-  color:#ffffff;
-  font-family: 'Kanit', sans-serif;
-}
+    background: linear-gradient(135deg, #2a5da7, #1a4d97);
+    color: #ffffff;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 20px;
+  }
 
-#pageTitle {
-  font-size:32px;
-  letter-spacing:1px;
-  margin:10px 0;
-}
+  #pageTitle {
+    font-size: 36px;
+    letter-spacing: 2px;
+    margin: 20px 0;
+    text-align: center;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  }
 
   #gameCanvas {
-    border: 1px solid #333;
-    background: transparent;
+    border: 3px solid #ffffff;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   }
 
-  
+  #gameArea {
+    position: relative;
+    width: 800px;
+    margin: 0 auto;
+  }
+
   #slotContainer {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 800px;
-  display: none;   /* <-- JS will set this to "flex" at start */
-}
-  .slot {
-  flex: 1;
-  height: 60px;                  /* <-- increased from 50px to match level2 spacing */
-  line-height: 60px;             /* <-- updated to match new height */
-  text-align: center;
-  background:#fff4e6;
-  color:#000;
-  transition: background 0.2s;
-}
-
-
-.slot.level2 {
-  height: 180px;                 /* <-- increased height to prevent overflow */
-  line-height: 1.4em;            
-  font-family: monospace; 
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-start;
-  align-items:center;
-}
-
-  /* --- Slot text (override global white -> black) --- */
-.slot,
-.slot * {
-  color:#000;                 /* make slot labels / truth tables black */
-  background:#fff4e6;
-
-}
-
-/* --- Activated slot color --- */
-.activated {
-   background:#ffb300;  /* gold / yellow instead of green */
-}
-
-/* Fix for consistent vertical spacing */
-.slot.level2 * {
-  line-height: 1.4em;
-  vertical-align: baseline;
-  display: inline-block;
-  width: 100%;
-  text-align: center;
-}
- 
-  #progress { margin:8px; }
-
-  /* start overlay */
-  #startOverlay {
-    position:absolute;
-    top:0; left:0;
-    width:100%; height:100%;
-    background:rgba(0,0,0,0.4);
-    color:white;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    font-size:20px;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 800px;
+    display: none;
+    gap: 2px;
   }
 
-  /* Truth-table grid (Level2) */
+  .slot {
+    flex: 1;
+    height: 60px;
+    line-height: 60px;
+    text-align: center;
+    background: #ff8c42; /* Orange background */
+    color: #000;
+    transition: all 0.3s ease;
+    border-radius: 8px 8px 0 0;
+    border: 2px solid #e67e22;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
+  }
+
+  .slot.level2 {
+    height: 180px;
+    line-height: 1.4em;
+    font-family: monospace;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 8px 4px;
+    background: #ff8c42; /* Maintain orange for level 2 */
+    border: 2px solid #e67e22;
+  }
+
+  /* Activated slot styling */
+  .slot.activated {
+    background: #ffd700 !important; /* Bright yellow when activated */
+    border-color: #ffb300 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 -4px 12px rgba(255, 215, 0, 0.4);
+  }
+
+  /* Level 2 specific text styling */
+  .slot.level2 span {
+    color: #000;
+    line-height: 1.4em;
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin: 1px 0;
+  }
+
+  #progress {
+    margin: 15px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    background: rgba(255,255,255,0.1);
+    padding: 10px;
+    border-radius: 20px;
+    display: inline-block;
+  }
+
+  /* Start overlay improvements */
+  #startOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 18px;
+    border-radius: 8px;
+  }
+
+  #startOverlay h1 {
+    font-size: 42px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  }
+
+  #startOverlay p {
+    margin: 15px 0;
+    line-height: 1.5;
+  }
+
+  #startOverlay b {
+    color: #ffd700;
+  }
+
+  /* Truth table styling */
   #truthGrid {
     border-collapse: collapse;
-    font-size:14px;
-    margin-top:4px;
+    font-size: 12px;
+    margin-top: 4px;
   }
+
   #truthGrid th, #truthGrid td {
-    padding:2px 6px;
-    text-align:center;
+    padding: 2px 4px;
+    text-align: center;
   }
-  #truthGrid thead tr { border-bottom:1px solid black; }
+
+  #truthGrid thead tr {
+    border-bottom: 1px solid black;
+  }
+
   #truthGrid th:nth-child(2), #truthGrid td:nth-child(2) {
-    border-right:1px solid black;
+    border-right: 1px solid black;
   }
-  .output-true { font-weight:bold; }
+
+  .output-true {
+    font-weight: bold;
+  }
+
+  /* Hover effects for slots */
+  .slot:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 -3px 10px rgba(0,0,0,0.3);
+  }
+
+  /* Game pieces styling enhancement */
+  .falling-piece {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    font-weight: bold;
+  }
 </style>
 </head>
 <body>
 
-    <h1 id="pageTitle">TFL Symbol Tetris</h1>
+<h1 id="pageTitle">TFL Symbol Tetris</h1>
 
-<div id="gameArea" style="position:relative; width:800px;">
+<div id="gameArea">
   <canvas id="gameCanvas" width="800" height="600"></canvas>
 
   <!-- Slot container used for both levels -->
-  <div id="slotContainer" style="position:absolute; left:0; bottom:0; width:800px; display:none;">
+  <div id="slotContainer">
     <div class="slot" data-name="">Slot1</div>
     <div class="slot" data-name="">Slot2</div>
     <div class="slot" data-name="">Slot3</div>
@@ -121,24 +184,24 @@
     <div class="slot" data-name="">Slot5</div>
   </div>
 </div>
-  
 
 <div id="progress"></div>
 
 <div id="startOverlay">
- <h1>TFL Symbol Tetris</h1>
-<p>Drop each logical symbol in the correct column.</p>
-<p>
-  <b>← / →</b> = move &nbsp;&nbsp; • &nbsp;&nbsp; <b>Spacebar</b> = drop
-</p>
-<p>
-  Activate all 5 columns at once to clear a stone row.<br>
-  Game over if any stone column reaches the top.
-</p>
-<p>Press <b>1</b> to play Level 1 — Symbol → English Name<br/>
-Press <b>2</b> to play Level 2 — Symbol → Truth Table</p>
+  <div>
+    <h1>TFL Symbol Tetris</h1>
+    <p>Drop each logical symbol in the correct column.</p>
+    <p>
+      <b>← / →</b> = move &nbsp;&nbsp; • &nbsp;&nbsp; <b>Spacebar</b> = drop
+    </p>
+    <p>
+      Activate all 5 columns at once to clear a stone row.<br>
+      Game over if any stone column reaches the top.
+    </p>
+    <p>Press <b>1</b> to play Level 1 — Symbol → English Name<br/>
+    Press <b>2</b> to play Level 2 — Symbol → Truth Table</p>
+  </div>
 </div>
-
 
 <script>
 // ======== Canvas + DOM Setup ========
@@ -256,7 +319,7 @@ function shuffle(array) {
 function setupLevel2Slots(){
   // Input column in slot 0
   slotContainer.children[0].innerHTML =
-    "<span>A&nbsp;B</span><br><span>T&nbsp;&nbsp;T</span><br><span>T&nbsp;&nbsp;F</span><br><span>F&nbsp;&nbsp;T</span><br><span>F&nbsp;&nbsp;F</span>";
+    "<span>A&nbsp;B</span><span>T&nbsp;&nbsp;T</span><span>T&nbsp;&nbsp;F</span><span>F&nbsp;&nbsp;T</span><span>F&nbsp;&nbsp;F</span>";
 
   // shuffle the 4 patterns
   const shuffled = shuffle(patternNames);
@@ -265,12 +328,12 @@ function setupLevel2Slots(){
   for(let col = 1; col < 5; col++){
     const patName = shuffled[col-1];
     const pattern = truthPatterns[patName];
-    let html = "<span>&nbsp;</span><br>";   // top blank row for alignment
+    let html = "<span>&nbsp;</span>";   // top blank row for alignment
     
     for(const v of pattern){
       // Use spans with consistent styling instead of <b> tags
       const weight = v === "T" ? "font-weight:bold;" : "font-weight:normal;";
-      html += `<span style="${weight}">${v}</span><br>`;
+      html += `<span style="${weight}">${v}</span>`;
     }
     
     slotContainer.children[col].innerHTML = html;
@@ -364,13 +427,13 @@ function checkComboLevel2(){
 
 // ======== Progress + End ========
 function updateProgressAndCheckEnd(){
-  progressDiv.textContent = handledPieces + " / " + totalPieces;
+  progressDiv.textContent = `Progress: ${handledPieces} / ${totalPieces}`;
   if(columnHeights.some(h=>h>=maxBlocks)){
-    alert("Game Over");
+    alert("Game Over! Try again?");
     window.location.reload();
   }
   if(handledPieces >= totalPieces){
-    alert("Level Complete!");
+    alert("Level Complete! Well done!");
     window.location.reload();
   }
 }
@@ -381,31 +444,40 @@ function gameLoop(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
   // draw stones (error blocks)
-  const slotHeight = level === 2 ? 160 : 60; // Get current slot height
+  const slotHeight = level === 2 ? 180 : 60; // Get current slot height
   for(let i=0;i<5;i++){
     if(columnHeights[i]>0){
-      ctx.fillStyle="#777";
+      ctx.fillStyle="#cc4444";
+      ctx.strokeStyle="#aa3333";
+      ctx.lineWidth = 2;
       // Draw from bottom of canvas minus slot height, going up
       const startY = canvas.height - slotHeight - (columnHeights[i] * blockHeight);
-      ctx.fillRect(i*(canvas.width/5),
+      ctx.fillRect(i*(canvas.width/5) + 2,
                    startY,
-                   (canvas.width/5),
+                   (canvas.width/5) - 4,
                    columnHeights[i]*blockHeight);
+      ctx.strokeRect(i*(canvas.width/5) + 2,
+                     startY,
+                     (canvas.width/5) - 4,
+                     columnHeights[i]*blockHeight);
     }
   }
 
-  // draw current piece
+  // draw current piece with better styling
   if(currentPiece){
     currentPiece.y += (2/(baseFallSpeed*speedMultiplier));
-    ctx.font="32px sans-serif";
+    ctx.font="bold 36px Arial";
     ctx.textAlign="center";
-    ctx.fillStyle="#000";
-    ctx.fillText(currentPiece.symbol,
-      (Math.floor(currentPiece.x/(canvas.width/5))*(canvas.width/5)) + (canvas.width/10),
-      currentPiece.y);
+    ctx.fillStyle="#ffffff";
+    ctx.strokeStyle="#000000";
+    ctx.lineWidth = 2;
+    const pieceX = (Math.floor(currentPiece.x/(canvas.width/5))*(canvas.width/5)) + (canvas.width/10);
+    
+    // Draw text with outline
+    ctx.strokeText(currentPiece.symbol, pieceX, currentPiece.y);
+    ctx.fillText(currentPiece.symbol, pieceX, currentPiece.y);
 
     // Check if piece hits the bottom (accounting for slot height)
-    const slotHeight = level === 2 ? 160 : 60;
     if(currentPiece.y >= canvas.height - slotHeight - blockHeight){
       dropPiece();
     }
