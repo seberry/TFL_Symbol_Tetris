@@ -200,7 +200,8 @@ slotContainer.children[0].innerHTML =
   "A&nbsp;B<br>T&nbsp;&nbsp;T<br>T&nbsp;&nbsp;F<br>F&nbsp;&nbsp;T<br>F&nbsp;&nbsp;F";
 
   // shuffle the 4 patterns
-  const shuffled = patternNames.sort(() => Math.random() - 0.5);
+  const shuffled = [...patternNames].sort(() => Math.random() - 0.5);
+
 
   // fill slots 1..4
   for(let col=1; col<5; col++){
