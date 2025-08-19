@@ -32,15 +32,16 @@
   transition: background 0.2s;
 }
 
-.slot.level2 {
-  height: 160px;
-  line-height: 1.1em;            /* <-- fixed line height for all lines */
-  font-family: monospace; 
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-start;
-  align-items:center;
+.slot.level2 span {
+  display:inline-block;
+  width: 100%;
+  font-family: monospace;
+  line-height: 1.2em;
 }
+
+.slot.level2 .output-true  { font-weight:bold; }
+.slot.level2 .output-false { font-weight:normal; }
+
   .activated { background:#88ffaa; }
   #progress { margin:8px; }
 
@@ -216,10 +217,10 @@ slotContainer.children[0].innerHTML =
   for(let col=1; col<5; col++){
     const patName = shuffled[col-1];   // use first 4 from shuffle
     const pattern = truthPatterns[patName];
-    let html = "&nbsp;&nbsp;<br>";   // add one blank row so patterns align with A/B header
-// top blank row for alignment
+    let html = "&nbsp;<br>";  // alignment blank
     for(const v of pattern){
-      html += (v==="T" ? "<b>T</b>" : "F") + "<br>";
+      const cls = (v === "T") ? "output-true" : "output-false";
+      html += `<span class="${cls}">${v}</span><br>`;
     }
     slotContainer.children[col].innerHTML = html;
     slotContainer.children[col].dataset.name = patName;
