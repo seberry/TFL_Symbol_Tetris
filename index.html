@@ -48,6 +48,17 @@
   align-items:center;
 }
 
+  /* --- Slot text (override global white -> black) --- */
+.slot,
+.slot * {
+  color:#000;                 /* make slot labels / truth tables black */
+}
+
+/* --- Activated slot color --- */
+.activated {
+  background:#ffcc33;         /* gold / yellow instead of green */
+}
+
 /* Fix for consistent vertical spacing */
 .slot.level2 * {
   line-height: 1.4em;
