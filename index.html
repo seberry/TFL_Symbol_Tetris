@@ -110,7 +110,7 @@ const progressDiv   = document.getElementById("progress");
 // ======== Data ========
 let level = 0;                   // 0 = not started, 1 or 2
 let handledPieces = 0;
-let totalPieces   = 30;          // updated to 20 in level2
+let totalPieces   = 30;          
 let speedMultiplier = 1;
 let baseFallSpeed = 1.5;
 
@@ -134,7 +134,7 @@ const binarySymbols = ["∧","∨","→","↔"];
 const truthPatterns = {
   "AND": ["T","F","F","F"],
   "OR" : ["T","T","T","F"],
-  "IMP": ["T","F","T","T"],
+  "IF…THEN": ["T","F","T","T"],
   "IFF": ["T","F","F","T"]
 };
 const patternNames = ["AND","OR","IMP","IFF"];
@@ -165,7 +165,7 @@ function beginGame(){
     loadLevel1Slots();
 
   } else {
-    totalPieces = 20;
+    totalPieces = 30;
     canvas.height = 500;     // <-- shorter drop area
     baseFallSpeed = 2.5;     // <-- slower fall speed for level 2
     slotContainer.style.display = "flex";
