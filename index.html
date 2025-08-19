@@ -193,6 +193,16 @@ function loadLevel1Slots(){
 }
 
 // ======== Level 2 slots (AB + shuffled patterns) ========
+
+function shuffle(array) {
+  const a = [...array];
+  for(let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+  
 function setupLevel2Slots(){
   // Input column in slot 0
   slotContainer.children[0].innerHTML = "";   // clear any old label
@@ -200,8 +210,7 @@ slotContainer.children[0].innerHTML =
   "A&nbsp;B<br>T&nbsp;&nbsp;T<br>T&nbsp;&nbsp;F<br>F&nbsp;&nbsp;T<br>F&nbsp;&nbsp;F";
 
   // shuffle the 4 patterns
-  const shuffled = [...patternNames].sort(() => Math.random() - 0.5);
-
+  const shuffled = shuffle(patternNames);
 
   // fill slots 1..4
   for(let col=1; col<5; col++){
